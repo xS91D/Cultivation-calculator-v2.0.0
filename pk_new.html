@@ -148,15 +148,14 @@
       }
 
       const playerBonus = getGongfaBonus("player-gongfa");
-
       document.getElementById("waterPower").textContent = 
-        ((playerBase * (1.05 + playerBonus["水"])) / (1 - restrain)).toFixed(2);
-
+        Math.floor((playerBase * (1.05 + playerBonus["水"])) / (1 - restrain));
+      
       document.getElementById("firePower").textContent  = 
-        ((playerBase * (1.05 + playerBonus["火"])) / (1 - restrain)).toFixed(2);
-
+        Math.floor((playerBase * (1.05 + playerBonus["火"])) / (1 - restrain));
+      
       document.getElementById("woodPower").textContent  = 
-        ((playerBase * (1.05 + playerBonus["木"])) / (1 - restrain)).toFixed(2);
+        Math.floor((playerBase * (1.05 + playerBonus["木"])) / (1 - restrain));
     }
 
     document.getElementById("playerPower").addEventListener("input", calculatePower);
@@ -166,3 +165,4 @@
   </script>
 </body>
 </html>
+
