@@ -92,11 +92,14 @@
       margin-left: auto;
       margin-right: auto;
     }
+    button:hover {
+      background-color: #45a049;
+    }
   </style>
 </head>
 <body>
   <div class="calculator-container">
-    <h2>戰力計算器(v2.0.0)</h2>
+    <h2>戰力計算器(v2.1.0)</h2>
 
     <div class="section">
       <h3>您的戰力</h3>
@@ -104,81 +107,60 @@
 
       <h3>功法</h3>
       <div class="gongfa-grid">
-        <label><input type="checkbox" class="player-gongfa" value="火-3">天元神火訣(Lv6)</label>
-        <label><input type="checkbox" class="player-gongfa" value="水-3">潤下之水法(Lv7)</label>
-        <label><input type="checkbox" class="player-gongfa" value="木-3">木日曲直卷(Lv8)</label>
-        <label><input type="checkbox" class="player-gongfa" value="木-5">春木衍光符(Lv13)</label>
-        <label><input type="checkbox" class="player-gongfa" value="火-5">火燚聖火功(Lv14)</label>
-        <label><input type="checkbox" class="player-gongfa" value="水-5">萬世橫江典(Lv15)</label>
+        <label><input type="checkbox" class="player-gongfa" value="火-0.03">天元神火訣(Lv6) +3%</label>
+        <label><input type="checkbox" class="player-gongfa" value="水-0.03">潤下之水法(Lv7) +3%</label>
+        <label><input type="checkbox" class="player-gongfa" value="木-0.03">木日曲直卷(Lv8) +3%</label>
+        <label><input type="checkbox" class="player-gongfa" value="木-0.05">春木衍光符(Lv13) +5%</label>
+        <label><input type="checkbox" class="player-gongfa" value="火-0.05">火燚聖火功(Lv14) +5%</label>
+        <label><input type="checkbox" class="player-gongfa" value="水-0.05">萬世橫江典(Lv15) +5%</label>
       </div>
 
-      <p>(水)可攻擊的最大戰力</p>
+      <p>(水) 可攻擊的最大戰力</p>
       <div class="result" id="waterPower">-</div>
-      <p>(火)可攻擊的最大戰力</p>
+      <p>(火) 可攻擊的最大戰力</p>
       <div class="result" id="firePower">-</div>
-      <p>(木)可攻擊的最大戰力</p>
+      <p>(木) 可攻擊的最大戰力</p>
       <div class="result" id="woodPower">-</div>
-    </div>
-
-    <div class="section">
-      <h3>對手戰力</h3>
-      <input type="number" id="opponentPower" placeholder="請輸入對手戰力">
-
-      <h3>功法</h3>
-      <div class="gongfa-grid">
-        <label><input type="checkbox" class="opponent-gongfa" value="火-3">天元神火訣(Lv6)</label>
-        <label><input type="checkbox" class="opponent-gongfa" value="水-3">潤下之水法(Lv7)</label>
-        <label><input type="checkbox" class="opponent-gongfa" value="木-3">木日曲直卷(Lv8)</label>
-        <label><input type="checkbox" class="opponent-gongfa" value="木-5">春木衍光符(Lv13)</label>
-        <label><input type="checkbox" class="opponent-gongfa" value="火-5">火燚聖火功(Lv14)</label>
-        <label><input type="checkbox" class="opponent-gongfa" value="水-5">萬世橫江典(Lv15)</label>
-      </div>
-
-      <p>(水)至少需要的戰力</p>
-      <div class="result" id="requiredWater">-</div>
-      <p>(火)至少需要的戰力</p>
-      <div class="result" id="requiredFire">-</div>
-      <p>(木)至少需要的戰力</p>
-      <div class="result" id="requiredWood">-</div>
     </div>
 
     <button onclick="location.href='index.html'">返回主介面</button>
   </div>
 
   <script>
-    const restrain = 0.05; // 相剋修正
+    const restrain = 0.05;
 
     function getGongfaBonus(className) {
       const bonus = { 水:0, 火:0, 木:0 };
       document.querySelectorAll(`.${className}:checked`).forEach(cb => {
         const [type, percent] = cb.value.split("-");
-        bonus[type] += parseInt(percent)/100;
+        bonus[type] += parseFloat(percent);
       });
       return bonus;
     }
 
     function calculatePower() {
       const playerBase = parseFloat(document.getElementById("playerPower").value) || 0;
-      const opponentBase = parseFloat(document.getElementById("opponentPower").value) || 0;
+      if (playerBase <= 0) {
+        ["waterPower","firePower","woodPower"].forEach(id=>{
+          document.getElementById(id).textContent = "-";
+        });
+        return;
+      }
 
       const playerBonus = getGongfaBonus("player-gongfa");
-      const opponentBonus = getGongfaBonus("opponent-gongfa");
 
-      document.getElementById("waterPower").textContent = (playerBase*(1+playerBonus["水"]+restrain)).toFixed(0);
-      document.getElementById("firePower").textContent  = (playerBase*(1+playerBonus["火"]+restrain)).toFixed(0);
-      document.getElementById("woodPower").textContent  = (playerBase*(1+playerBonus["木"]+restrain)).toFixed(0);
+      document.getElementById("waterPower").textContent = 
+        ((playerBase * (1.05 + playerBonus["水"])) / (1 - restrain)).toFixed(2);
 
-      ["水","火","木"].forEach(type=>{
-        const required = (opponentBase / (1+playerBonus[type]+restrain) * (1+opponentBonus[type])).toFixed(0);
-        document.getElementById(`required${type}`).textContent = required;
-      });
+      document.getElementById("firePower").textContent  = 
+        ((playerBase * (1.05 + playerBonus["火"])) / (1 - restrain)).toFixed(2);
+
+      document.getElementById("woodPower").textContent  = 
+        ((playerBase * (1.05 + playerBonus["木"])) / (1 - restrain)).toFixed(2);
     }
 
-    ["playerPower","opponentPower"].forEach(id=>{
-      document.getElementById(id).addEventListener("input", calculatePower);
-    });
-
-    document.querySelectorAll(".player-gongfa,.opponent-gongfa").forEach(cb=>{
+    document.getElementById("playerPower").addEventListener("input", calculatePower);
+    document.querySelectorAll(".player-gongfa").forEach(cb=>{
       cb.addEventListener("change", calculatePower);
     });
   </script>
