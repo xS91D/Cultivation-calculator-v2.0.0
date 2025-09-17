@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修仙戰力計算器(v1.0.0)</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #ffcc70, #5e9ca0);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calculator-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            color: #4CAF50;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .result {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .result-box {
+            background: #f9f9f9;
+            border: 2px solid #ddd;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+        }
+
+        .result-box p {
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .highlight-win {
+            color: #2e7d32;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .highlight-lose {
+            color: #c62828;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 12px;
+            background: #eee;
+            color: #333;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+
+        .footer {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #777;
+        }
+
+        .sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 999;
+            top: 0;
+            left: 0;
+            background-color: #4CAF50;
+            overflow-x: hidden;
+            transition: 0.3s;
+            padding-top: 60px;
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+
+        .sidebar a {
+            padding: 10px 20px;
+            text-decoration: none;
+            font-size: 18px;
+            color: white;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #388e3c;
+        }
+
+        .sidebar-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .open-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 26px;
+            cursor: pointer;
+            color: #4CAF50;
+            background: none;
+            border: none;
+        }
+
+        @media (max-width: 480px) {
+            .calculator-container {
+                padding-top: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <h2>修仙戰力計算器(v1.0.0)</h2>
+        <div class="input-group">
+            <label for="myPower">我方原戰力:</label>
+            <input type="number" id="myPower" placeholder="請輸入我方原戰力" step="any">
+        </div>
+        <div class="input-group">
+            <label for="enemyPower">敵方原戰力:</label>
+            <input type="number" id="enemyPower" placeholder="請輸入敵方原戰力" step="any">
+        </div>
+        <button onclick="calculate()">計算結果</button>
+        <button style="display:block; margin:20px auto;" onclick="location.href='index.html'">返回主介面</button>
+        <div class="result" id="result"></div>
+        <div class="footer">本網站計算戰力僅供參考</div>
+    </div>
+
+    <script>
+        function openSidebar() {
+            document.getElementById("mySidebar").style.width = "220px";
+        }
+
+        function closeSidebar() {
+            document.getElementById("mySidebar").style.width = "0";
+        }
+
+        function calculate() {
+            let myPower = parseFloat(document.getElementById('myPower').value);
+            let enemyPower = parseFloat(document.getElementById('enemyPower').value);
+
+            if (isNaN(myPower) || isNaN(enemyPower)) {
+                alert('請輸入有效的戰力數值');
+                return;
+            }
+
+            let myPowerPlus5 = Math.round(myPower * 1.05);
+            let myPowerMinus5 = Math.round(myPower * 0.95);
+            let enemyPowerPlus5 = Math.round(enemyPower * 1.05);
+            let enemyPowerMinus5 = Math.round(enemyPower * 0.95);
+            let enemyPowerHigh = Math.round((myPower * 1.05) / 0.95);
+            let enemyPowerLow = Math.round((myPower * 0.95) / 1.05);
+            let controlledMyPower = Math.round(myPower * 1.05);
+            let controlledEnemyPower = Math.round(enemyPower * 0.95);
+
+            let resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <div class="result-box">
+                    <p><span class="tag">+5%</span>我方戰力: ${myPowerPlus5}</p>
+                    <p><span class="tag">-5%</span>我方戰力: ${myPowerMinus5}</p>
+                    <p><span class="tag">+5%</span>敵方戰力: ${enemyPowerPlus5}</p>
+                    <p><span class="tag">-5%</span>敵方戰力: ${enemyPowerMinus5}</p>
+                    <p style="color: brown;"><strong>敵方戰力高於 ${enemyPowerHigh} 時：敵方輾壓我方</strong></p>
+                    <p style="color: brown;"><strong>敵方戰力低於 ${enemyPowerLow} 時：我方輾壓敵方</strong></p>
+                    <hr>
+                    <p><span class="tag">原始模擬</span>我方: ${controlledMyPower}，敵方: ${controlledEnemyPower}</p>
+                </div>
+            `;
+
+            if (controlledMyPower > controlledEnemyPower) {
+                resultDiv.innerHTML += `<p class="highlight-win">✅ 你會贏（原始狀況下）</p>`;
+            } else {
+                resultDiv.innerHTML += `<p class="highlight-lose">❌ 你會輸（原始狀況下）</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

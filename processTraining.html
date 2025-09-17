@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>修練時間計算器</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #ffcc70, #5e9ca0);
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .calculator-container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      width: 460px;
+      max-height: 95vh;
+      overflow-y: auto;
+    }
+    h2 {
+      color: #4CAF50;
+      font-size: 26px;
+      margin-bottom: 20px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 4px;
+      margin: 5px;
+    }
+    .result {
+      background: #f2f2f2;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px auto;
+      border: 1px solid #ccc;
+      width: 90%;
+      text-align: center;
+      font-size: 20px;
+    }
+    .highlight {
+      color: red;
+      font-weight: bold;
+    }
+    .footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h2>修練時間計算器</h2>
+
+    <label>選擇等級：</label>
+    <select id="levelSelect"></select>
+
+    <input type="number" id="currentExp" placeholder="輸入當前修為" />
+    <input type="number" id="trainingSpeed" placeholder="修練速度 (修為/秒)" />
+    <input type="number" id="energyPill" placeholder="元氣丹補回修為" />
+
+    <p>離晉升所需時間</p>
+    <div class="result" id="remainingTime">-</div>
+    <div id="pkInfo" style="color:#6d6d6d;"></div>
+
+    <p>預計晉升時間</p>
+    <div class="result" id="expectedTime">-</div>
+    <div class="result" id="nextPromotion">-</div>
+
+    <button onclick="location.href='index.html'">返回主介面</button>
+    <div class="footer">本網站提供數據僅供參考 (最後更新: 2025/9/17)</div>
+  </div>
+
+  <script>
+    const levels = [
+      { name: "Lv.3 築基前期", exp: 42550 }, { name: "Lv.3 築基中期", exp: 37150 },
+      { name: "Lv.3 築基後期", exp: 24150 }, { name: "Lv.4 結丹前期", exp: 95625 },
+      { name: "Lv.4 結丹中期", exp: 70625 }, { name: "Lv.4 結丹後期", exp: 44625 },
+      { name: "Lv.5 元嬰前期", exp: 154980 }, { name: "Lv.5 元嬰中期", exp: 106155 },
+      { name: "Lv.5 元嬰後期", exp: 54915 }, { name: "Lv.6 出竅前期", exp: 177765 },
+      { name: "Lv.6 出竅中期", exp: 121275 }, { name: "Lv.6 出竅後期", exp: 61950 },
+      { name: "Lv.7 化神前期", exp: 206220 }, { name: "Lv.7 化神中期", exp: 140805 },
+      { name: "Lv.7 化神後期", exp: 72135 }, { name: "Lv.8 合體前期", exp: 322140 },
+      { name: "Lv.8 合體中期", exp: 246435 }, { name: "Lv.8 合體後期", exp: 166950 },
+      { name: "Lv.9 洞虛前期", exp: 552320 }, { name: "Lv.9 洞虛中期", exp: 376970 },
+      { name: "Lv.9 洞虛後期", exp: 193200 }, { name: "Lv.10 大乘前期", exp: 639765 },
+      { name: "Lv.10 大乘中期", exp: 436800 }, { name: "Lv.10 大乘後期", exp: 223650 },
+      { name: "Lv.11 渡劫前期", exp: 861000 }, { name: "Lv.11 渡劫中期", exp: 598500 },
+      { name: "Lv.11 渡劫後期", exp: 315000 }, { name: "Lv.12 人仙前期", exp: 2841000 },
+      { name: "Lv.12 人仙中期", exp: 1764000 }, { name: "Lv.12 人仙後期", exp: 903000 },
+      { name: "Lv.13 真仙前期", exp: 2818895 }, { name: "Lv.13 真仙中期", exp: 1895985 },
+      { name: "Lv.13 真仙後期", exp: 950985 }, { name: "Lv.14 金仙前期", exp: 2956905 },
+      { name: "Lv.14 金仙中期", exp: 1988805 }, { name: "Lv.14 金仙後期", exp: 1003275 },
+      { name: "Lv.15 上仙前期", exp: 3117942 }, { name: "Lv.15 上仙中期", exp: 2097922 },
+      { name: "Lv.15 上仙後期", exp: 1058422 }, { name: "Lv.16 仙君前期", exp: 6352500 },
+      { name: "Lv.16 仙君中期", exp: 3832500 }, { name: "Lv.16 仙君後期", exp: 1942500 },
+      { name: "Lv.17 仙尊前期", exp: 6777750 }, { name: "Lv.17 仙尊中期", exp: 4730250 },
+      { name: "Lv.17 仙尊後期", exp: 2478000 }
+    ];
+
+    const pkConfig = [
+      { levels: [42550, 37150, 24150], pk: 800, pk2: 1000 },
+      { levels: [95625, 70625, 44625], pk: 1000, pk2: 1500 },
+      { levels: [154980, 106155, 54915], pk: 1500, pk2: 2000 },
+      { levels: [177765, 121275, 61950], pk: 2000, pk2: 3000 },
+      { levels: [206220, 140805, 72135], pk: 3000, pk2: 4000 },
+      { levels: [322140, 246435, 166950], pk: 4000, pk2: 5000 },
+      { levels: [552320, 376970, 193220], pk: 5000, pk2: 6000 },
+      { levels: [639765, 436800, 223650], pk: 6000, pk2: 8000 },
+      { levels: [861000, 598500, 315000], pk: 8000, pk2: 20000 },
+      { levels: [2841000, 1764000, 903000], pk: 20000, pk2: 25000 },
+      { levels: [2818895, 1895985, 950985], pk: 25000, pk2: 28000 },
+      { levels: [2956905, 1988805, 1003275], pk: 28000, pk2: 30000 },
+      { levels: [3117942, 2097922, 1058422], pk: 30000, pk2: 45000 },
+      { levels: [6352500, 3832500, 1942500], pk: 45000, pk2: 60000 },
+      { levels: [6777750, 4730250, 2478000], pk: 60000, pk2: 100000 }
+    ];
+
+    const promotionSlots = ["10:00","11:00","12:00","13:00","14:00","15:00",
+                            "16:00","17:00","18:00","19:00","20:00","21:00",
+                            "22:00","23:00","00:00"];
+    const levelSelect = document.getElementById('levelSelect');
+    levels.forEach(lv => {
+      const opt = document.createElement('option');
+      opt.value = lv.exp;
+      opt.textContent = lv.name;
+      levelSelect.appendChild(opt);
+    });
+
+    function calculateTraining() {
+      const currentExp = parseInt(document.getElementById('currentExp').value) || 0;
+      const trainingSpeed = parseInt(document.getElementById('trainingSpeed').value);
+      const energyPill = parseInt(document.getElementById('energyPill').value) || 0;
+      const targetExp = parseInt(levelSelect.value);
+
+      const remainingTimeDiv = document.getElementById('remainingTime');
+      const pkInfoDiv = document.getElementById('pkInfo');
+      const expectedTimeDiv = document.getElementById('expectedTime');
+      const nextPromotionDiv = document.getElementById('nextPromotion');
+
+      if (!trainingSpeed || trainingSpeed <= 0) {
+        remainingTimeDiv.textContent = "-";
+        pkInfoDiv.textContent = "-";
+        expectedTimeDiv.textContent = "-";
+        nextPromotionDiv.textContent = "-";
+        return;
+      }
+
+      let remainingExp = targetExp - currentExp - energyPill;
+      if (remainingExp <= 0) {
+        remainingTimeDiv.textContent = "已達滿修為";
+        pkInfoDiv.textContent = "-";
+        expectedTimeDiv.textContent = "-";
+        nextPromotionDiv.textContent = "-";
+        return;
+      }
+
+      const totalSeconds = Math.ceil(remainingExp / trainingSpeed);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      remainingTimeDiv.textContent = `${hours} 小時 ${minutes} 分鐘`;
+
+      const now = new Date();
+      now.setSeconds(now.getSeconds() + totalSeconds);
+      const hh = String(now.getHours()).padStart(2,'0');
+      const mm = String(now.getMinutes()).padStart(2,'0');
+      expectedTimeDiv.textContent = `${hh}:${mm} 修為可滿`;
+
+      let pk = 0, pk2 = 0;
+      for (const cfg of pkConfig) {
+        if (cfg.levels.includes(targetExp)) {
+          pk = cfg.pk;
+          pk2 = cfg.pk2;
+          break;
+        }
+      }
+      if (pk && pk2) {
+        const pkCount = Math.ceil(remainingExp / pk);
+        const pkCount2 = Math.ceil(remainingExp / pk2);
+        pkInfoDiv.innerHTML = `同等PK需 <span class="highlight">${pkCount}</span> 張挑戰帖 ｜ 越級PK需 <span class="highlight">${pkCount2}</span> 張挑戰帖`;
+      }
+
+      nextPromotionDiv.textContent = `(${findNextPromotionSlot(now)} 秘境)`;
+    }
+
+    function findNextPromotionSlot(date) {
+      const nowMinutes = date.getHours() * 60 + date.getMinutes();
+      for (const slot of promotionSlots) {
+        const [h, m] = slot.split(':').map(Number);
+        const slotMinutes = h*60 + m;
+        if (nowMinutes < slotMinutes || (slot==='00:00' && nowMinutes<60)) return slot;
+      }
+      return "00:00";
+    }
+
+    ['levelSelect','currentExp','trainingSpeed','energyPill'].forEach(id=>{
+      document.getElementById(id).addEventListener('input', calculateTraining);
+    });
+
+  </script>
+</body>
+</html>

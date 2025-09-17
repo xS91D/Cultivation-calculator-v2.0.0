@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>戰力計算器(v2.0.0)</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #ffcc70, #5e9ca0);
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .calculator-container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+      text-align: center;
+      width: 800px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    h2 {
+      color: #4CAF50;
+      font-size: 26px;
+      margin-bottom: 20px;
+    }
+    .section {
+      margin-bottom: 25px;
+      text-align: left;
+    }
+    .section h3 {
+      margin: 10px 0;
+    }
+    .gongfa-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .gongfa-grid label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      background: #f9f9f9;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .gongfa-grid label:hover {
+      background: #e0f7e0;
+      border-color: #4CAF50;
+    }
+    .gongfa-grid input[type="checkbox"] {
+      margin-right: 8px;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      font-size: 16px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    .result {
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 10px;
+      background: #f2f2f2;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-top: 10px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator-container">
+    <h2>戰力計算器(v2.0.0)</h2>
+
+    <div class="section">
+      <h3>您的戰力</h3>
+      <input type="number" id="playerPower" placeholder="請輸入您的戰力">
+
+      <h3>功法</h3>
+      <div class="gongfa-grid">
+        <label><input type="checkbox" class="player-gongfa" value="火-3">天元神火訣(Lv6)</label>
+        <label><input type="checkbox" class="player-gongfa" value="水-3">潤下之水法(Lv7)</label>
+        <label><input type="checkbox" class="player-gongfa" value="木-3">木日曲直卷(Lv8)</label>
+        <label><input type="checkbox" class="player-gongfa" value="木-5">春木衍光符(Lv13)</label>
+        <label><input type="checkbox" class="player-gongfa" value="火-5">火燚聖火功(Lv14)</label>
+        <label><input type="checkbox" class="player-gongfa" value="水-5">萬世橫江典(Lv15)</label>
+      </div>
+
+      <p>(水)可攻擊的最大戰力</p>
+      <div class="result" id="waterPower">-</div>
+      <p>(火)可攻擊的最大戰力</p>
+      <div class="result" id="firePower">-</div>
+      <p>(木)可攻擊的最大戰力</p>
+      <div class="result" id="woodPower">-</div>
+    </div>
+
+    <div class="section">
+      <h3>對手戰力</h3>
+      <input type="number" id="opponentPower" placeholder="請輸入對手戰力">
+
+      <h3>功法</h3>
+      <div class="gongfa-grid">
+        <label><input type="checkbox" class="opponent-gongfa" value="火-3">天元神火訣(Lv6)</label>
+        <label><input type="checkbox" class="opponent-gongfa" value="水-3">潤下之水法(Lv7)</label>
+        <label><input type="checkbox" class="opponent-gongfa" value="木-3">木日曲直卷(Lv8)</label>
+        <label><input type="checkbox" class="opponent-gongfa" value="木-5">春木衍光符(Lv13)</label>
+        <label><input type="checkbox" class="opponent-gongfa" value="火-5">火燚聖火功(Lv14)</label>
+        <label><input type="checkbox" class="opponent-gongfa" value="水-5">萬世橫江典(Lv15)</label>
+      </div>
+
+      <p>(水)至少需要的戰力</p>
+      <div class="result" id="requiredWater">-</div>
+      <p>(火)至少需要的戰力</p>
+      <div class="result" id="requiredFire">-</div>
+      <p>(木)至少需要的戰力</p>
+      <div class="result" id="requiredWood">-</div>
+    </div>
+
+    <button onclick="location.href='index.html'">返回主介面</button>
+  </div>
+
+  <script>
+    const restrain = 0.05; // 相剋修正
+
+    function getGongfaBonus(className) {
+      const bonus = { 水:0, 火:0, 木:0 };
+      document.querySelectorAll(`.${className}:checked`).forEach(cb => {
+        const [type, percent] = cb.value.split("-");
+        bonus[type] += parseInt(percent)/100;
+      });
+      return bonus;
+    }
+
+    function calculatePower() {
+      const playerBase = parseFloat(document.getElementById("playerPower").value) || 0;
+      const opponentBase = parseFloat(document.getElementById("opponentPower").value) || 0;
+
+      const playerBonus = getGongfaBonus("player-gongfa");
+      const opponentBonus = getGongfaBonus("opponent-gongfa");
+
+      document.getElementById("waterPower").textContent = (playerBase*(1+playerBonus["水"]+restrain)).toFixed(0);
+      document.getElementById("firePower").textContent  = (playerBase*(1+playerBonus["火"]+restrain)).toFixed(0);
+      document.getElementById("woodPower").textContent  = (playerBase*(1+playerBonus["木"]+restrain)).toFixed(0);
+
+      ["水","火","木"].forEach(type=>{
+        const required = (opponentBase / (1+playerBonus[type]+restrain) * (1+opponentBonus[type])).toFixed(0);
+        document.getElementById(`required${type}`).textContent = required;
+      });
+    }
+
+    ["playerPower","opponentPower"].forEach(id=>{
+      document.getElementById(id).addEventListener("input", calculatePower);
+    });
+
+    document.querySelectorAll(".player-gongfa,.opponent-gongfa").forEach(cb=>{
+      cb.addEventListener("change", calculatePower);
+    });
+  </script>
+</body>
+</html>
